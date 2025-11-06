@@ -1,26 +1,159 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* General */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', sans-serif;
+  background-color: #b7c9b3;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+h1, h2, h3 {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+
+
+/* Container */
+.reserva-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+/* Formulario */
+.form-reserva {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-width: 400px;
+  width: 100%;
+}
+
+.form-reserva label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.form-reserva input,
+.form-reserva select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 0.6rem;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-reserva input:focus,
+.form-reserva select:focus {
+  outline: none;
+  border-color: #0070f3;
+}
+
+.form-reserva button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #0070f3;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s;
+}
+
+.form-reserva button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.form-reserva button:hover:not(:disabled) {
+  background-color: #005bb5;
+}
+
+.mensaje {
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+.mensaje.exito {
+  color: #28a745;
+}
+
+.mensaje.error {
+  color: #dc3545;
+}
+
+/* Horarios */
+.horarios {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-width: 400px;
+  width: 100%;
+}
+
+.Titulo {
+  background-color: #f8f8f8;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-width: 400px;
+  width: 90%;      /* Para que sea responsive */
+  margin: 0 auto;  /* Esto centra el bloque horizontalmente */
+  text-align: center;
+  box-sizing: border-box;
+}
+
+
+.grid-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.6rem;
+}
+
+.horario {
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.horario.libre {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.horario.ocupado {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.horario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  font-style: italic;
+  color: #555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .reserva-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
 }

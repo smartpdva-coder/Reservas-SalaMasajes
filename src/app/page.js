@@ -1,65 +1,102 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import FormReserva from "@/components/FormReserva";
+import Horarios from "@/components/Horarios";
+import '../app/globals.css';
 
-export default function Home() {
+
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxL87P7KOsPWoxWGJ7oc4z60_MjwMeSci6nZH1vdpp44VBaXAXNoVm6-yKY9koPpCe7/exec";
+
+export default function Page() {
+  const [reservas, setReservas] = useState([]);
+  const [cargandoReservas, setCargandoReservas] = useState(true);
+  const fechaHoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  // 🔹 Función de carga reutilizable (sin mostrar loading)
+  const fetchReservas = useCallback(async (mostrarCargando = false) => {
+    if (mostrarCargando) setCargandoReservas(true);
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL + "?t=" + Date.now(), {
+        cache: "no-store",
+      });
+      const data = await response.json();
+      const reservasData = Array.isArray(data) ? data : data.reservas;
+
+      if (Array.isArray(reservasData)) {
+        const reservasHoy = reservasData
+          .map((r) => {
+            const parseHora = (hora) => {
+              if (!hora) return "";
+              const d = new Date(hora);
+              return isNaN(d) ? hora : d.toTimeString().slice(0, 5);
+            };
+            return {
+              ...r,
+              fecha: new Date(r.fecha).toISOString().slice(0, 10),
+              horaInicio: parseHora(r.horaInicio),
+              horaFin: parseHora(r.horaFin),
+            };
+          })
+          .filter((r) => r.fecha === fechaHoy);
+
+        setReservas(reservasHoy);
+      }
+    } catch (error) {
+      console.error("❌ No se pudieron cargar las reservas:", error);
+    } finally {
+      if (mostrarCargando) setCargandoReservas(false);
+    }
+  }, [fechaHoy]);
+
+  // 🔸 Carga inicial
+  useEffect(() => {
+    fetchReservas(true);
+  }, [fetchReservas]);
+
+  // 🔸 Actualización automática cada 10 segundos
+  useEffect(() => {
+    const intervalo = setInterval(() => fetchReservas(false), 10000);
+    return () => clearInterval(intervalo);
+  }, [fetchReservas]);
+
+  // 🔸 Actualización al detectar interacción del usuario
+  useEffect(() => {
+    let timeout;
+    const handleUserInteraction = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fetchReservas(false), 500); // ligera pausa para evitar spam
+    };
+
+    const eventos = ["click", "keydown", "touchstart", "scroll"];
+    eventos.forEach((ev) => window.addEventListener(ev, handleUserInteraction));
+
+    return () => {
+      eventos.forEach((ev) =>
+        window.removeEventListener(ev, handleUserInteraction)
+      );
+      clearTimeout(timeout);
+    };
+  }, [fetchReservas]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main style={{ padding: "2rem" }}>
+      <div className="Titulo">
+        <h1>Reserva de Masaje</h1> 
+        </div>
+         <br></br>
+      
+      <div className="reserva-container">
+        <FormReserva
+          fecha={fechaHoy}
+          reservas={reservas}
+          setReservas={setReservas}
+          cargandoReservas={cargandoReservas}
+          refrescarReservas={fetchReservas}
+
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <Horarios reservas={reservas} cargandoReservas={cargandoReservas} />
+      </div>
+    </main>
   );
 }
