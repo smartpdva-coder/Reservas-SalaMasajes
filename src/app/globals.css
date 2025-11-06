@@ -1,35 +1,94 @@
-/* General */
+/* ==============================
+   🎨 ESTILOS GLOBALES – Reservas Next
+   ============================== */
+
+/* Fuente general y fondo */
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #b7c9b3;
+  background: url('/LogoredondoBPOCENTER.png') no-repeat center center fixed;
+  background-size: cover;
   margin: 0;
-  padding: 0;
+  padding: 0;       /* mismo padding en todos los lados */
   color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
 }
 
+.form-reserva {
+  background-color: #fff;
+  padding: 2rem;       /* uniforme en todos los lados */
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-width: 400px;
+  width: 100%;
+  box-sizing: border-box; /* importante para que el padding no rompa el ancho */
+}
+
+.horarios {
+  background-color: #fff;
+  padding: 2rem;       /* uniforme */
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-width: 400px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+
+/* Tipografía */
 h1, h2, h3 {
   margin: 0 0 1rem 0;
   font-weight: 600;
+  color: #1a1a1a;
 }
 
+h1 {
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
+/* Layout principal */
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5rem;
+}
 
-/* Container */
+/* ==============================
+   🧩 CONTENEDORES
+   ============================== */
+
 .reserva-container {
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
   justify-content: center;
+  margin-top: 1rem;
 }
 
-/* Formulario */
+/* ==============================
+   🧾 FORMULARIO
+   ============================== */
+
+
 .form-reserva {
   background-color: #fff;
-  padding: 2rem;
+  padding: 2rem;       /* uniforme en todos los lados */
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   max-width: 400px;
   width: 100%;
+  box-sizing: border-box; /* importante para que el padding no rompa el ancho */
+}
+
+.form-reserva:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
 .form-reserva label {
@@ -46,13 +105,14 @@ h1, h2, h3 {
   border: 1px solid #ccc;
   border-radius: 0.6rem;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-reserva input:focus,
 .form-reserva select:focus {
   outline: none;
   border-color: #0070f3;
+  box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.2);
 }
 
 .form-reserva button {
@@ -65,7 +125,7 @@ h1, h2, h3 {
   border-radius: 0.6rem;
   cursor: pointer;
   margin-top: 1rem;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .form-reserva button:disabled {
@@ -75,11 +135,14 @@ h1, h2, h3 {
 
 .form-reserva button:hover:not(:disabled) {
   background-color: #005bb5;
+  transform: translateY(-2px);
 }
 
+/* Mensajes */
 .mensaje {
   margin-top: 1rem;
   font-weight: 500;
+  text-align: center;
 }
 
 .mensaje.exito {
@@ -90,29 +153,45 @@ h1, h2, h3 {
   color: #dc3545;
 }
 
-/* Horarios */
+/* ==============================
+   ⏰ HORARIOS
+   ============================== */
+
 .horarios {
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.95);
   padding: 2rem;
   border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   max-width: 400px;
   width: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.horarios:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+/* Título */
 .Titulo {
-  background-color: #f8f8f8;
-  padding: 2rem;
+  background-color: rgba(248, 248, 248, 0.95);
+  padding: 1rem;
   border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  max-width: 400px;
-  width: 90%;      /* Para que sea responsive */
-  margin: 0 auto;  /* Esto centra el bloque horizontalmente */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 500px;
+  width: 90%;
+  margin: 1rem auto;
   text-align: center;
   box-sizing: border-box;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.Titulo:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
 
+/* Grid de horarios */
 .grid-horarios {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -139,21 +218,102 @@ h1, h2, h3 {
 
 .horario:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-/* Loading */
+/* ==============================
+   ⏳ LOADING MODERNO
+   ============================== */
 .loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-style: normal;
+  font-weight: 500;
+  color: #0070f3;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0.8rem 1.2rem;
+  border-radius: 0.8rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin: 1rem auto;
+  min-width: 200px;
   text-align: center;
-  font-style: italic;
-  color: #555;
+  position: relative;
+  animation: pulse 1.5s infinite;
 }
 
-/* Responsive adjustments */
+.loading::after {
+  content: '⏳';
+  display: inline-block;
+  margin-left: 0.5rem;
+  animation: spin 1s linear infinite;
+}
+
+/* Pulsing fondo */
+@keyframes pulse {
+  0%, 100% { background-color: rgba(255, 255, 255, 0.9); }
+  50% { background-color: rgba(255, 255, 255, 0.7); }
+}
+
+/* Icono giratorio */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ==============================
+   📱 RESPONSIVE
+   ============================== */
+
 @media (max-width: 768px) {
   .reserva-container {
     flex-direction: column;
     align-items: center;
   }
-  
+
+  .form-reserva, .horarios {
+    max-width: 90%;
+  }
+
+  .Titulo {
+    width: 95%;
+    font-size: 1.5rem;
+  }
+}
+/* Contenedor del título */
+.TituloAnimado {
+  background: linear-gradient(135deg, #a8e6cf, #dcedc1);
+  padding:  1rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 500px;
+  margin: 2rem auto;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Título con animación */
+.TituloAnimado h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0070f3;
+  background: linear-gradient(90deg, #25292d, #1c6378, #0070f3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientMove 3s ease-in-out infinite, bounce 1.5s ease-in-out infinite;
+}
+
+/* Movimiento de gradiente */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Ligerito “bounce” vertical */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }

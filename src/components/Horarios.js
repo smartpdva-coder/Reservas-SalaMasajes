@@ -1,7 +1,7 @@
 "use client";
 
 export default function Horarios({ reservas, cargandoReservas }) {
-  if (cargandoReservas) return <p>⏳ Cargando horarios...</p>;
+  if (cargandoReservas) return <p className="loading">⏳ Cargando horarios...</p>;;
 
   const horariosOcupados = reservas
     .map((r) => (typeof r.horaInicio === "string" ? r.horaInicio : null))

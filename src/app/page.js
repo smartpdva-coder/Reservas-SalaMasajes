@@ -54,9 +54,9 @@ export default function Page() {
     fetchReservas(true);
   }, [fetchReservas]);
 
-  // 🔸 Actualización automática cada 10 segundos
+  // 🔸 Actualización automática cada 4 segundos
   useEffect(() => {
-    const intervalo = setInterval(() => fetchReservas(false), 10000);
+    const intervalo = setInterval(() => fetchReservas(false), 4000);
     return () => clearInterval(intervalo);
   }, [fetchReservas]);
 
@@ -81,8 +81,8 @@ export default function Page() {
 
   return (
     <main style={{ padding: "2rem" }}>
-      <div className="Titulo">
-        <h1>Reserva de Masaje</h1> 
+      <div className="TituloAnimado">
+        <h1>Reserva Para Sesion de Masaje</h1> 
         </div>
          <br></br>
       
