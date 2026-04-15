@@ -21,41 +21,33 @@ function ensureLocalFile() {
 }
 
 function readLocalState() {
-  try {
-    ensureLocalFile();
-    const raw = fs.readFileSync(FILE_PATH, "utf8");
-    const parsed = JSON.parse(raw);
-
-    return {
-      ...DEFAULT_STATE,
-      ...parsed,
-    };
-  } catch (error) {
-    console.error("❌ Error leyendo estado local:", error);
-    return DEFAULT_STATE;
-  }
+  ensureLocalFile();
+  const raw = fs.readFileSync(FILE_PATH, "utf8");
+  return { ...DEFAULT_STATE, ...JSON.parse(raw) };
 }
 
 function writeLocalState(isOpen) {
-  try {
-    ensureLocalFile();
+  ensureLocalFile();
 
-    const nextState = {
-      isOpen,
-      updatedAt: new Date().toISOString(),
-    };
+  const nextState = {
+    isOpen,
+    updatedAt: new Date().toISOString(),
+  };
 
-    fs.writeFileSync(FILE_PATH, JSON.stringify(nextState, null, 2), "utf8");
-    return nextState;
-  } catch (error) {
-    console.error("❌ Error escribiendo estado local:", error);
-    throw error;
-  }
+  fs.writeFileSync(FILE_PATH, JSON.stringify(nextState, null, 2), "utf8");
+  return nextState;
 }
 
 export async function readSystemState() {
   try {
-    if (process.env.EDGE_CONFIG) {
+    if (process.env.NODE_ENV === "production") {
+      if (!process.env.EDGE_CONFIG) {
+        return {
+          isOpen: true,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
       const isOpen = await get("masajes_is_open");
 
       return {
@@ -66,13 +58,31 @@ export async function readSystemState() {
 
     return readLocalState();
   } catch (error) {
-    console.error("❌ Error leyendo estado del sistema:", error);
+    console.error("❌ Error leyendo estado:", error);
+
+    if (process.env.NODE_ENV === "production") {
+      return {
+        isOpen: true,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
     return readLocalState();
   }
 }
 
 export async function writeSystemState(isOpen) {
-  if (process.env.EDGE_CONFIG && process.env.EDGE_CONFIG_ID && process.env.EDGE_CONFIG_TOKEN) {
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.EDGE_CONFIG_ID || !process.env.EDGE_CONFIG_TOKEN) {
+      throw new Error(
+        "Falta configurar EDGE_CONFIG_ID y EDGE_CONFIG_TOKEN en Vercel"
+      );
+    }
+
+    if (!process.env.EDGE_CONFIG_ID.startsWith("ecfg_")) {
+      throw new Error("EDGE_CONFIG_ID inválido");
+    }
+
     const url = `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items`;
 
     const res = await fetch(url, {
