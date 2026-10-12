@@ -1,6 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import {
+  IconShield,
+  IconX,
+  IconLock,
+  IconLockOpen,
+  IconLogout,
+  IconCheckCircle,
+  IconAlertCircle,
+  IconSpinner,
+} from "./Icons";
 
 export default function AdminCorner({
   estadoSistema,
@@ -12,6 +22,7 @@ export default function AdminCorner({
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [tipoMensaje, setTipoMensaje] = useState("exito");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -31,12 +42,14 @@ export default function AdminCorner({
         throw new Error(data.message || "Error al iniciar sesión");
       }
 
-      setMensaje("✅ Sesión iniciada");
+      setTipoMensaje("exito");
+      setMensaje("Sesión iniciada");
       setPassword("");
       await refrescarEstado();
     } catch (error) {
-      console.error("❌ Error login:", error);
-      setMensaje("❌ Credenciales inválidas");
+      console.error("Error login:", error);
+      setTipoMensaje("error");
+      setMensaje("Credenciales inválidas");
     } finally {
       setCargando(false);
     }
@@ -54,14 +67,16 @@ export default function AdminCorner({
         throw new Error(data.message || "Error al cerrar sesión");
       }
 
-      setMensaje("✅ Sesión cerrada");
+      setTipoMensaje("exito");
+      setMensaje("Sesión cerrada");
       setUsername("");
       setPassword("");
       await refrescarEstado();
       setOpen(false);
     } catch (error) {
-      console.error("❌ Error logout:", error);
-      setMensaje("❌ No se pudo cerrar sesión");
+      console.error("Error logout:", error);
+      setTipoMensaje("error");
+      setMensaje("No se pudo cerrar sesión");
     } finally {
       setCargando(false);
     }
@@ -84,14 +99,14 @@ export default function AdminCorner({
         throw new Error(data.message || "Error al cambiar estado");
       }
 
-      setMensaje(
-        data.state?.isOpen ? "✅ Sistema activado" : "⏸️ Sistema pausado"
-      );
+      setTipoMensaje("exito");
+      setMensaje(data.state?.isOpen ? "Sistema activado" : "Sistema pausado");
 
       await refrescarEstado();
     } catch (error) {
-      console.error("❌ Error toggle:", error);
-      setMensaje("❌ No se pudo cambiar el estado");
+      console.error("Error toggle:", error);
+      setTipoMensaje("error");
+      setMensaje("No se pudo cambiar el estado");
     } finally {
       setCargando(false);
     }
@@ -104,7 +119,9 @@ export default function AdminCorner({
           type="button"
           className="admin-fab"
           onClick={() => setOpen(true)}
+          aria-label="Panel de administración"
         >
+          <IconShield />
           {adminAuth ? "Panel Admin" : "Admin"}
         </button>
       )}
@@ -112,13 +129,16 @@ export default function AdminCorner({
       {open && (
         <div className="admin-panel">
           <div className="admin-header">
-            <strong>Administración</strong>
+            <strong>
+              <IconShield /> Administración
+            </strong>
             <button
               type="button"
               className="admin-close"
               onClick={() => setOpen(false)}
+              aria-label="Cerrar panel"
             >
-              ×
+              <IconX />
             </button>
           </div>
 
@@ -141,7 +161,13 @@ export default function AdminCorner({
               />
 
               <button type="submit" disabled={cargando}>
-                {cargando ? "Ingresando..." : "Ingresar"}
+                {cargando ? (
+                  <>
+                    <IconSpinner className="spin" /> Ingresando...
+                  </>
+                ) : (
+                  "Ingresar"
+                )}
               </button>
             </form>
           ) : (
@@ -151,7 +177,15 @@ export default function AdminCorner({
                   estadoSistema.isOpen ? "activo" : "inactivo"
                 }`}
               >
-                {estadoSistema.isOpen ? "Sistema ACTIVO" : "Sistema PAUSADO"}
+                {estadoSistema.isOpen ? (
+                  <>
+                    <IconLockOpen /> Sistema ACTIVO
+                  </>
+                ) : (
+                  <>
+                    <IconLock /> Sistema PAUSADO
+                  </>
+                )}
               </div>
 
               <button
@@ -160,6 +194,13 @@ export default function AdminCorner({
                 onClick={toggleSistema}
                 disabled={cargando}
               >
+                {cargando ? (
+                  <IconSpinner className="spin" />
+                ) : estadoSistema.isOpen ? (
+                  <IconLock />
+                ) : (
+                  <IconLockOpen />
+                )}
                 {cargando
                   ? "Procesando..."
                   : estadoSistema.isOpen
@@ -173,12 +214,21 @@ export default function AdminCorner({
                 onClick={handleLogout}
                 disabled={cargando}
               >
-                Cerrar sesión
+                <IconLogout /> Cerrar sesión
               </button>
             </div>
           )}
 
-          {mensaje && <p className="admin-message">{mensaje}</p>}
+          {mensaje && (
+            <p className={`admin-message ${tipoMensaje}`}>
+              {tipoMensaje === "exito" ? (
+                <IconCheckCircle />
+              ) : (
+                <IconAlertCircle />
+              )}
+              {mensaje}
+            </p>
+          )}
         </div>
       )}
     </div>

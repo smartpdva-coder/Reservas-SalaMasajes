@@ -1,5 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import {
+  IconUser,
+  IconClock,
+  IconCheckCircle,
+  IconAlertCircle,
+  IconLock,
+  IconSpinner,
+} from "./Icons";
 
 const HORARIOS_DISPONIBLES = [
   "08:45 – 09:00",
@@ -32,7 +40,12 @@ export default function FormReserva({
   const [hora, setHora] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [tipoMensaje, setTipoMensaje] = useState("exito");
   const [reservaExitosa, setReservaExitosa] = useState(false);
+
+  // Evita doble submit si el usuario hace doble clic o doble Enter
+  // antes de que React vuelva a renderizar con `cargando = true`.
+  const enVueloRef = useRef(false);
 
   const participanteNormalizado = normalizarNombre(participante);
 
@@ -44,19 +57,31 @@ export default function FormReserva({
         normalizarNombre(r.participante) === participanteNormalizado
     );
 
+  const bloqueado =
+    cargando ||
+    cargandoReservas ||
+    yaReservado ||
+    reservaExitosa ||
+    !sistemaActivo;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (enVueloRef.current) return;
+
     if (!sistemaActivo) {
-      setMensaje("⛔ Las reservas están temporalmente deshabilitadas.");
+      setTipoMensaje("error");
+      setMensaje("Las reservas están temporalmente deshabilitadas.");
       return;
     }
 
     if (!hora || !participante.trim()) {
-      setMensaje("⚠️ Selecciona un horario y escribe tu nombre");
+      setTipoMensaje("error");
+      setMensaje("Selecciona un horario y escribe tu nombre.");
       return;
     }
 
+    enVueloRef.current = true;
     setCargando(true);
     setMensaje("");
     setReservaExitosa(false);
@@ -88,22 +113,36 @@ export default function FormReserva({
       }
 
       setReservas((prev) => [...prev, nuevaReserva]);
-      setMensaje("✅ Reserva guardada con éxito");
+      setTipoMensaje("exito");
+      setMensaje("Reserva guardada con éxito.");
       setReservaExitosa(true);
       setHora("");
 
       await refrescarReservas(false);
     } catch (error) {
-      console.error("⚠️ Error al guardar reserva:", error);
-      setMensaje(error.message || "❌ Ocurrió un error al guardar.");
+      console.error("Error al guardar reserva:", error);
+      setTipoMensaje("error");
+      setMensaje(error.message || "Ocurrió un error al guardar.");
       setReservaExitosa(false);
+      setHora("");
+      // El horario pudo haber sido tomado por otra persona: refrescamos
+      // para que se pinte como ocupado de inmediato, sin esperar al poll.
+      await refrescarReservas(false);
     } finally {
       setCargando(false);
+      enVueloRef.current = false;
     }
   };
 
   if (cargandoReservas) {
-    return <p className="loading">⏳ Cargando reservas...</p>;
+    return (
+      <div className="form-reserva">
+        <p className="loading">
+          <IconSpinner className="spin" />
+          Cargando reservas...
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -112,46 +151,39 @@ export default function FormReserva({
 
       {!sistemaActivo && (
         <p className="mensaje error">
-          ⛔ Reservas pausadas por administración
+          <IconLock />
+          Reservas pausadas por administración
         </p>
       )}
 
       <label>
-        Participante:
+        <span className="label-texto">
+          <IconUser /> Participante
+        </span>
         <input
           type="text"
           value={participante}
           onChange={(e) => {
             const valor = e.target.value;
-            if (/^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]*$/.test(valor)) {
+            if (/^[a-zA-ZÀ-ÿñÑ\s]*$/.test(valor)) {
               setParticipante(valor);
             }
           }}
           required
           placeholder="Tu nombre completo"
-          disabled={
-            cargando ||
-            cargandoReservas ||
-            yaReservado ||
-            reservaExitosa ||
-            !sistemaActivo
-          }
+          disabled={bloqueado}
         />
       </label>
 
       <label>
-        Hora:
+        <span className="label-texto">
+          <IconClock /> Hora
+        </span>
         <select
           value={hora}
           onChange={(e) => setHora(e.target.value)}
           required
-          disabled={
-            cargando ||
-            cargandoReservas ||
-            yaReservado ||
-            reservaExitosa ||
-            !sistemaActivo
-          }
+          disabled={bloqueado}
         >
           <option value="">Selecciona horario</option>
           {HORARIOS_DISPONIBLES.map((h) => {
@@ -160,36 +192,38 @@ export default function FormReserva({
 
             return (
               <option key={h} value={inicio} disabled={ocupado}>
-                {h} {ocupado ? "⛔ Ocupado" : ""}
+                {h} {ocupado ? "· Ocupado" : ""}
               </option>
             );
           })}
         </select>
       </label>
 
-      <button
-        type="submit"
-        disabled={
-          cargando ||
-          cargandoReservas ||
-          yaReservado ||
-          reservaExitosa ||
-          !sistemaActivo
-        }
-      >
-        {cargando
-          ? "Guardando..."
-          : !sistemaActivo
-          ? "Reservas cerradas"
-          : reservaExitosa
-          ? "Reservado ✅"
-          : yaReservado
-          ? "Ya reservaste"
-          : "Reservar"}
+      <button type="submit" disabled={bloqueado}>
+        {cargando ? (
+          <>
+            <IconSpinner className="spin" /> Guardando...
+          </>
+        ) : !sistemaActivo ? (
+          <>
+            <IconLock /> Reservas cerradas
+          </>
+        ) : reservaExitosa ? (
+          <>
+            <IconCheckCircle /> Reservado
+          </>
+        ) : yaReservado ? (
+          <>
+            <IconAlertCircle /> Ya reservaste
+          </>
+        ) : (
+          "Reservar"
+        )}
       </button>
 
       {mensaje && (
-        <p className={`mensaje ${mensaje.includes("✅") ? "exito" : "error"}`}>
+        <p className={`mensaje ${tipoMensaje}`}>
+          {tipoMensaje === "exito" ? <IconCheckCircle /> : <IconAlertCircle />}
           {mensaje}
         </p>
       )}

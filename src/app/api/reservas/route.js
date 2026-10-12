@@ -83,15 +83,21 @@ export async function GET() {
       throw new Error("El Apps Script no devolvió JSON. Revisa tu doGet().");
     }
 
-    let data = [];
+    let parsed = [];
     try {
-      data = JSON.parse(text);
+      parsed = JSON.parse(text);
     } catch {
       console.error("⚠️ No se pudo parsear el JSON, devolviendo vacío.");
-      data = [];
+      parsed = [];
     }
 
-    if (!Array.isArray(data)) data = [];
+    // El Apps Script devuelve { reservas: [...], usuarios: [...] }.
+    // Si en algún momento vuelve a devolver un array plano, también lo soportamos.
+    let data = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray(parsed?.reservas)
+      ? parsed.reservas
+      : [];
 
     console.log(`✅ Reservas obtenidas: ${data.length} registros`);
     return NextResponse.json(data);

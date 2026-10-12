@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import FormReserva from "@/components/FormReserva";
 import Horarios from "@/components/Horarios";
 import AdminCorner from "@/components/AdminCorner";
+import { IconLock, IconSpa, IconCpu } from "@/components/Icons";
 import "../app/globals.css";
 
 export default function Page() {
@@ -108,15 +109,6 @@ useEffect(() => {
   return () => clearInterval(intervalo);
 }, [fetchReservas, fetchEstadoSistema]);
 
-  useEffect(() => {
-    const intervalo = setInterval(() => {
-      fetchReservas(false);
-      fetchEstadoSistema();
-    }, 30000);
-
-    return () => clearInterval(intervalo);
-  }, [fetchReservas, fetchEstadoSistema]);
-
   return (
     <main style={{ padding: "2rem", position: "relative" }}>
       <AdminCorner
@@ -126,16 +118,16 @@ useEffect(() => {
       />
 
       <div className="TituloAnimado">
-        <h1>Reserva Para Sesion de Masaje</h1>
+        <IconSpa className="titulo-icono" />
+        <h1>Reserva tu Sesión de Masaje</h1>
       </div>
 
       {!estadoSistema.isOpen && (
         <div className="banner-bloqueado">
-          ⛔ Las reservas están temporalmente pausadas por administración.
+          <IconLock />
+          Las reservas están temporalmente pausadas por administración.
         </div>
       )}
-
-      <br />
 
       <div className="reserva-container">
         <FormReserva
@@ -152,6 +144,11 @@ useEffect(() => {
           cargandoReservas={cargandoReservas}
         />
       </div>
+
+      <footer className="footer-ti">
+        <IconCpu />
+        <span>Equipo TI · 2026</span>
+      </footer>
     </main>
   );
 }
