@@ -17,7 +17,13 @@ const HORARIOS = [
   "12:00 – 12:15",
 ];
 
-export default function Horarios({ reservas, cargandoReservas }) {
+export default function Horarios({
+  reservas,
+  cargandoReservas,
+  horaSeleccionada,
+  onSeleccionarHora,
+  sistemaActivo,
+}) {
   if (cargandoReservas) {
     return (
       <div className="horarios">
@@ -29,11 +35,13 @@ export default function Horarios({ reservas, cargandoReservas }) {
     );
   }
 
-  const horariosOcupados = reservas
-    .map((r) => (typeof r.horaInicio === "string" ? r.horaInicio : null))
-    .filter(Boolean);
+  const horariosOcupados = new Set(
+    reservas
+      .map((r) => (typeof r.horaInicio === "string" ? r.horaInicio : null))
+      .filter(Boolean)
+  );
 
-  const libres = HORARIOS.length - horariosOcupados.length;
+  const libres = HORARIOS.length - horariosOcupados.size;
 
   return (
     <div className="horarios">
@@ -41,17 +49,28 @@ export default function Horarios({ reservas, cargandoReservas }) {
         <h3>Horarios del Día</h3>
         <span className="horarios-contador">{libres} libres</span>
       </div>
+      <p className="horarios-ayuda">Toca un horario disponible para seleccionarlo.</p>
 
       <div className="grid-horarios">
         {HORARIOS.map((h) => {
           const inicio = h.split(" – ")[0];
-          const ocupado = horariosOcupados.includes(inicio);
+          const ocupado = horariosOcupados.has(inicio);
+          const seleccionado = horaSeleccionada === inicio;
+          const deshabilitado = ocupado || !sistemaActivo;
 
           return (
-            <div key={h} className={`horario ${ocupado ? "ocupado" : "libre"}`}>
+            <button
+              type="button"
+              key={h}
+              disabled={deshabilitado}
+              onClick={() => onSeleccionarHora(inicio)}
+              className={`horario ${ocupado ? "ocupado" : "libre"} ${
+                seleccionado ? "seleccionado" : ""
+              }`}
+            >
               {ocupado ? <IconLock /> : <IconCheckCircle />}
               <span>{h}</span>
-            </div>
+            </button>
           );
         })}
       </div>

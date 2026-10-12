@@ -10,6 +10,7 @@ import "../app/globals.css";
 export default function Page() {
   const [reservas, setReservas] = useState([]);
   const [cargandoReservas, setCargandoReservas] = useState(true);
+  const [horaSeleccionada, setHoraSeleccionada] = useState("");
   const [estadoSistema, setEstadoSistema] = useState({
     isOpen: true,
     authenticated: false,
@@ -58,12 +59,16 @@ export default function Page() {
       const data = await response.json();
       const reservasData = Array.isArray(data) ? data : [];
 
+      // El Apps Script devuelve las cabeceras en minúsculas
+      // (horainicio, horafin), no en camelCase: normalizamos aceptando
+      // ambas formas para no depender de cómo venga el JSON.
       const reservasHoy = reservasData
         .map((r) => ({
           ...r,
-          fecha: normalizarFecha(r.fecha),
-          horaInicio: parseHora(r.horaInicio),
-          horaFin: parseHora(r.horaFin),
+          fecha: normalizarFecha(r.fecha ?? r.Fecha),
+          horaInicio: parseHora(r.horaInicio ?? r.horainicio),
+          horaFin: parseHora(r.horaFin ?? r.horafin),
+          participante: r.participante ?? r.Participante ?? "",
         }))
         .filter((r) => r.fecha === fechaHoy);
 
@@ -130,6 +135,14 @@ useEffect(() => {
       )}
 
       <div className="reserva-container">
+        <Horarios
+          reservas={reservas}
+          cargandoReservas={cargandoReservas}
+          horaSeleccionada={horaSeleccionada}
+          onSeleccionarHora={setHoraSeleccionada}
+          sistemaActivo={estadoSistema.isOpen}
+        />
+
         <FormReserva
           fecha={fechaHoy}
           reservas={reservas}
@@ -137,11 +150,8 @@ useEffect(() => {
           cargandoReservas={cargandoReservas}
           refrescarReservas={fetchReservas}
           sistemaActivo={estadoSistema.isOpen}
-        />
-
-        <Horarios
-          reservas={reservas}
-          cargandoReservas={cargandoReservas}
+          hora={horaSeleccionada}
+          setHora={setHoraSeleccionada}
         />
       </div>
 

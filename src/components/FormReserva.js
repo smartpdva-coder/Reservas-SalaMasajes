@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   IconUser,
   IconClock,
@@ -8,21 +8,6 @@ import {
   IconLock,
   IconSpinner,
 } from "./Icons";
-
-const HORARIOS_DISPONIBLES = [
-  "08:45 – 09:00",
-  "09:00 – 09:15",
-  "09:15 – 09:30",
-  "09:30 – 09:45",
-  "10:00 – 10:15",
-  "10:15 – 10:30",
-  "10:30 – 10:45",
-  "10:45 – 11:00",
-  "11:15 – 11:30",
-  "11:30 – 11:45",
-  "11:45 – 12:00",
-  "12:00 – 12:15",
-];
 
 function normalizarNombre(valor = "") {
   return valor.trim().replace(/\s+/g, " ").toLowerCase();
@@ -35,9 +20,10 @@ export default function FormReserva({
   cargandoReservas,
   refrescarReservas,
   sistemaActivo,
+  hora,
+  setHora,
 }) {
   const [participante, setParticipante] = useState("");
-  const [hora, setHora] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState("exito");
@@ -46,6 +32,13 @@ export default function FormReserva({
   // Evita doble submit si el usuario hace doble clic o doble Enter
   // antes de que React vuelva a renderizar con `cargando = true`.
   const enVueloRef = useRef(false);
+
+  // Si la hora seleccionada pasa a estar ocupada (p. ej. otra persona la
+  // tomó mientras tanto) o el usuario la deselecciona, limpiamos el mensaje
+  // de éxito previo para no confundir.
+  useEffect(() => {
+    if (!hora) setReservaExitosa(false);
+  }, [hora]);
 
   const participanteNormalizado = normalizarNombre(participante);
 
@@ -77,7 +70,7 @@ export default function FormReserva({
 
     if (!hora || !participante.trim()) {
       setTipoMensaje("error");
-      setMensaje("Selecciona un horario y escribe tu nombre.");
+      setMensaje("Selecciona un horario disponible y escribe tu nombre.");
       return;
     }
 
@@ -116,7 +109,6 @@ export default function FormReserva({
       setTipoMensaje("exito");
       setMensaje("Reserva guardada con éxito.");
       setReservaExitosa(true);
-      setHora("");
 
       await refrescarReservas(false);
     } catch (error) {
@@ -147,7 +139,7 @@ export default function FormReserva({
 
   return (
     <form className="form-reserva" onSubmit={handleSubmit}>
-      <h3>Registrar Reserva</h3>
+      <h3>Confirmar Reserva</h3>
 
       {!sistemaActivo && (
         <p className="mensaje error">
@@ -155,6 +147,19 @@ export default function FormReserva({
           Reservas pausadas por administración
         </p>
       )}
+
+      <div className="hora-elegida">
+        <span className="label-texto">
+          <IconClock /> Horario elegido
+        </span>
+        {hora ? (
+          <div className="hora-elegida-chip">{hora}</div>
+        ) : (
+          <div className="hora-elegida-vacio">
+            Elige un horario en la lista de la izquierda
+          </div>
+        )}
+      </div>
 
       <label>
         <span className="label-texto">
@@ -175,31 +180,7 @@ export default function FormReserva({
         />
       </label>
 
-      <label>
-        <span className="label-texto">
-          <IconClock /> Hora
-        </span>
-        <select
-          value={hora}
-          onChange={(e) => setHora(e.target.value)}
-          required
-          disabled={bloqueado}
-        >
-          <option value="">Selecciona horario</option>
-          {HORARIOS_DISPONIBLES.map((h) => {
-            const inicio = h.split(" – ")[0];
-            const ocupado = reservas.some((r) => r.horaInicio === inicio);
-
-            return (
-              <option key={h} value={inicio} disabled={ocupado}>
-                {h} {ocupado ? "· Ocupado" : ""}
-              </option>
-            );
-          })}
-        </select>
-      </label>
-
-      <button type="submit" disabled={bloqueado}>
+      <button type="submit" disabled={bloqueado || !hora}>
         {cargando ? (
           <>
             <IconSpinner className="spin" /> Guardando...
