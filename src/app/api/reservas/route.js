@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { readSystemState } from "@/lib/system-store";
 
 const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxL87P7KOsPWoxWGJ7oc4z60_MjwMeSci6nZH1vdpp44VBaXAXNoVm6-yKY9koPpCe7/exec";
+  "https://script.google.com/macros/s/AKfycbyJFbJXHYcueUlWnDW4bJmeGuVkPxLplyVy1Xy5SVJA8mAgT53uZpaNCFPsZUiLM1TP/exec";
 
 // === POST: Guarda una nueva reserva ===
 export async function POST(req) {
