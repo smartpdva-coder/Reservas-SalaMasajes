@@ -43,6 +43,24 @@ body {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Marca de agua del logo BPO Center: centrada, sin recortes ni
+   estiramientos (background-size: contain), muy baja opacidad para
+   que no compita con las tarjetas del formulario. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url("/LogoredondoBPOCENTER.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: min(60vw, 640px);
+  opacity: 0.08;
+  pointer-events: none;
 }
 
 h1,
