@@ -3,6 +3,23 @@ const SPREADSHEET_ID = "1C-79_7dYw1-xgLwKcGYS8XKBQDOlSPWPRe9jcqhbi7Q";
 const SHEET_RESERVAS = "Reservas";
 const SHEET_USUARIOS = "Usuarios";
 
+// Tiempo máximo (ms) que un candado puede estar puesto sin que la
+// reserva se haya completado. Si Google corta la ejecución a la mitad
+// (por un redeploy, timeout, o la hoja respondiendo lento), el candado
+// se queda puesto para siempre a menos que lo tratemos como "vencido"
+// pasado este tiempo. 60s es de sobra para que un guardado normal
+// termine (toma 2-5s en la práctica).
+const LOCK_TTL_MS = 60 * 1000;
+
+// Un valor de candado tiene el formato "timestamp|dato". Vigente()
+// decide si todavía bloquea, o si ya se considera abandonado.
+function candadoVigente(valorGuardado) {
+  if (!valorGuardado) return false;
+  const ts = Number(String(valorGuardado).split("|")[0]);
+  if (!ts) return false;
+  return (Date.now() - ts) < LOCK_TTL_MS;
+}
+
 // ====================================================================
 // FUNCIÓN PRINCIPAL DE ESCRITURA (POST)
 // (Guarda la reserva y actualiza el contador de participaciones)
@@ -34,23 +51,29 @@ function doPost(e) {
     // --- Candado atómico: PropertiesService es consistente de inmediato
     //     entre ejecuciones, a diferencia de leer celdas de Sheets
     //     (que puede tener retraso de propagación entre escritura y
-    //     lectura de ejecuciones distintas). ---
-    if (props.getProperty(keySlot)) {
+    //     lectura de ejecuciones distintas). Un candado vencido (más de
+    //     LOCK_TTL_MS) se trata como abandonado y se ignora, para que
+    //     un corte abrupto de ejecución no bloquee el horario para
+    //     siempre. ---
+    if (candadoVigente(props.getProperty(keySlot))) {
       return ContentService
         .createTextOutput(JSON.stringify({ ok: false, message: "Ese horario ya fue reservado por otra persona. Elige otro." }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    if (props.getProperty(keyParticipante)) {
+    if (candadoVigente(props.getProperty(keyParticipante))) {
       return ContentService
         .createTextOutput(JSON.stringify({ ok: false, message: "Ya tienes una reserva registrada hoy." }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Marca el horario como tomado ANTES de tocar la hoja.
+    // Marca el horario como tomado ANTES de tocar la hoja, con marca de
+    // tiempo para que el candado expire solo si algo se corta a mitad
+    // de camino.
+    const marca = `${Date.now()}|${data.participante}`;
     props.setProperties({
-      [keySlot]: data.participante,
-      [keyParticipante]: "1",
+      [keySlot]: marca,
+      [keyParticipante]: marca,
     });
     marcoPropiedades = true;
 
