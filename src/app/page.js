@@ -57,12 +57,21 @@ export default function Page() {
       });
 
       const data = await response.json();
-      const reservasData = Array.isArray(data) ? data : [];
+
+      // El Apps Script a veces falla intermitentemente (sobrecarga,
+      // timeout) y /api/reservas responde {ok:false,...} en vez de un
+      // array. Si eso pasa, NO vaciamos la lista: mantenemos el último
+      // estado bueno conocido para no hacer parpadear horarios ocupados
+      // como libres cada vez que un sondeo falla.
+      if (!response.ok || !Array.isArray(data)) {
+        console.warn("⚠️ Respuesta inválida de /api/reservas, se mantiene el estado anterior:", data);
+        return;
+      }
 
       // El Apps Script devuelve las cabeceras en minúsculas
       // (horainicio, horafin), no en camelCase: normalizamos aceptando
       // ambas formas para no depender de cómo venga el JSON.
-      const reservasHoy = reservasData
+      const reservasHoy = data
         .map((r) => ({
           ...r,
           fecha: normalizarFecha(r.fecha ?? r.Fecha),
@@ -74,8 +83,7 @@ export default function Page() {
 
       setReservas(reservasHoy);
     } catch (error) {
-      console.error("❌ No se pudieron cargar las reservas:", error);
-      setReservas([]);
+      console.error("❌ No se pudieron cargar las reservas (se mantiene el estado anterior):", error);
     } finally {
       if (mostrarCargando) setCargandoReservas(false);
     }
