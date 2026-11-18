@@ -141,9 +141,6 @@ function doGet(e) {
 
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const tz = ss.getSpreadsheetTimeZone();
-    const hoy = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
-    const normFecha = (v) => v instanceof Date ? Utilities.formatDate(v, tz, "yyyy-MM-dd") : String(v).trim().slice(0, 10);
     let allData = {};
 
     // Función auxiliar para leer y mapear una hoja
@@ -169,14 +166,13 @@ function doGet(e) {
       });
     }
 
-    // --- 1. Obtener Reservas de HOY únicamente ---
-    // El frontend solo usa las reservas del día actual (filtra por fecha
-    // igual, lo hacía del lado del cliente). Filtrarlo aquí reduce el
-    // tamaño de la respuesta JSON, que si no, crece sin límite a medida
-    // que se acumulan reservas de meses anteriores en la hoja.
-    allData.reservas = readSheet(SHEET_RESERVAS).filter(
-      (r) => normFecha(r.fecha) === hoy
-    );
+    // --- 1. Obtener Reservas ---
+    // NOTA: se intentó filtrar aquí solo las reservas de "hoy" para
+    // aligerar la respuesta, pero la conversión de fecha vía
+    // Utilities.formatDate con la zona horaria de la hoja desplazaba el
+    // día y devolvía todo vacío. Se revierte a devolver todas las
+    // reservas; el frontend ya filtra por fecha de forma confiable.
+    allData.reservas = readSheet(SHEET_RESERVAS);
 
     // La hoja "Usuarios" ya NO se lee aquí: el frontend nunca la usa, y
     // leerla en cada sondeo (cada 2.5s, por cada usuario conectado)
